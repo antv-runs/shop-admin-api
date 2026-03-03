@@ -5,7 +5,7 @@ This repository contains a Laravel-based admin panel and simple store management
 
 Requirements (if running locally)
 - Docker & Docker Compose (recommended)
-- PHP 8.2 (if running without Docker)
+- PHP 8.3.6 (if running without Docker)
 - Composer
 
 2) Development (use `docker-compose.dev.yml` for DB + phpMyAdmin and run PHP locally)
