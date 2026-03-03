@@ -1,0 +1,37 @@
+@startuml
+
+actor User
+participant "App Server" as App
+database "jobs table" as DB
+participant "Queue Worker" as Worker
+participant "SMTP Server" as SMTP
+
+User -> App: Create Order
+App -> DB: Insert Order
+App -> DB: Insert Job (SendOrderCreatedEmail)
+App --> User: Return success response
+
+== Worker Process ==
+
+Worker -> DB: Fetch next job
+Worker -> SMTP: Send email (Attempt #1)
+SMTP --> Worker: Timeout / Error
+
+Worker -> Worker: Wait 10 seconds (backoff[0])
+Worker -> DB: Release job back to queue
+
+Worker -> DB: Fetch job again
+Worker -> SMTP: Send email (Attempt #2)
+SMTP --> Worker: Temporary failure
+
+Worker -> Worker: Wait 30 seconds (backoff[1])
+Worker -> DB: Release job back to queue
+
+Worker -> DB: Fetch job again
+Worker -> SMTP: Send email (Attempt #3)
+SMTP --> Worker: Success
+
+Worker -> DB: Delete job from queue
+Worker -> App: Log success
+
+@enduml

@@ -1,0 +1,37 @@
+version: "3.8"
+
+services:
+  shop-admin-db:
+    image: mysql:8.0
+    container_name: shop-admin-mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: ShopAdminDB
+    ports:
+      - "3307:3306"
+    volumes:
+      - shop-admin-db-data:/var/lib/mysql
+    networks:
+      - shop-admin-network
+
+  shop-admin-phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    container_name: shop-admin-phpmyadmin
+    restart: always
+    ports:
+      - "8081:80"
+    environment:
+      PMA_HOST: shop-admin-db
+      PMA_PORT: 3306
+      MYSQL_ROOT_PASSWORD: root
+    depends_on:
+      - shop-admin-db
+    networks:
+      - shop-admin-network
+
+volumes:
+  shop-admin-db-data:
+
+networks:
+  shop-admin-network:
