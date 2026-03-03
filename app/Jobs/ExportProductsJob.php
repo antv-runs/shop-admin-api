@@ -77,8 +77,8 @@ class ExportProductsJob implements ShouldQueue
             $filename = $this->generateFileName();
             $filePath = $this->exportToFile($products, $filename);
 
-            // Save file info to database or storage metadata
-            $fileUrl = Storage::disk('public')->url($filePath);
+            // Generate API download URL
+            $downloadUrl = config('app.url') . '/api/products/exports/' . $filename;
 
             // Get user and send notification
             $user = User::find($this->userId);
@@ -87,7 +87,7 @@ class ExportProductsJob implements ShouldQueue
                 Mail::to($user->email)
                     ->send(new ProductExportReadyMail(
                         user: $user,
-                        downloadUrl: $fileUrl,
+                        downloadUrl: $downloadUrl,
                         filename: $filename,
                         format: $this->format,
                         productCount: $products->count(),

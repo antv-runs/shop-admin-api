@@ -11,8 +11,8 @@
     },
     "servers": [
         {
-            "url": "https://api.vanannek.blog",
-            "description": "Production Server"
+            "url": "http://localhost:8000",
+            "description": "Local Server"
         }
     ],
     "paths": {
@@ -1646,6 +1646,44 @@
                 "security": [
                     {
                         "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/products/exports/{filename}": {
+            "get": {
+                "tags": [
+                    "Products"
+                ],
+                "summary": "Download exported product file",
+                "description": "Download an exported product file (CSV or XLSX)",
+                "operationId": "553eb9e24f8117f2a3c5e124b9244cdb",
+                "parameters": [
+                    {
+                        "name": "filename",
+                        "in": "path",
+                        "description": "Filename of the export",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "products_export_2026-03-03_09-41-08.xlsx"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "File downloaded successfully",
+                        "content": {
+                            "application/octet-stream": {}
+                        }
+                    },
+                    "404": {
+                        "description": "File not found"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctumAuth": []
                     }
                 ]
             }

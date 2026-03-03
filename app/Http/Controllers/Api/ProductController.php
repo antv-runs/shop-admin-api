@@ -8,6 +8,7 @@ use App\Http\Resources\ProductResource;
 use App\Contracts\ProductServiceInterface;
 use App\Contracts\FileUploadServiceInterface;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use Symfony\Component\HttpFoundation\Response;
 
 class ProductController extends BaseController
@@ -380,5 +381,51 @@ class ProductController extends BaseController
             'Export job queued. You will receive an email with the download link shortly.',
             Response::HTTP_ACCEPTED
         );
+    }
+
+    /**
+     * Download exported file
+     *
+     * @OA\Get(
+     *     path="/api/products/exports/{filename}",
+     *     summary="Download exported product file",
+     *     description="Download an exported product file (CSV or XLSX)",
+     *     tags={"Products"},
+     *     security={{"sanctumAuth":{}}},
+     *     @OA\Parameter(
+     *         name="filename",
+     *         in="path",
+     *         required=true,
+     *         description="Filename of the export",
+     *         @OA\Schema(type="string", example="products_export_2026-03-03_09-41-08.xlsx")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="File downloaded successfully",
+     *         @OA\MediaType(mediaType="application/octet-stream")
+     *     ),
+     *     @OA\Response(
+     *         response=404,
+     *         description="File not found"
+     *     )
+     * )
+     */
+    public function downloadExport($filename)
+    {
+        // Validate filename to prevent directory traversal
+        if (preg_match('/[^a-zA-Z0-9_\-.]/', $filename)) {
+            return $this->error('Invalid filename', Response::HTTP_BAD_REQUEST);
+        }
+
+        $filePath = 'exports/' . $filename;
+
+        // Check if file exists
+        if (!Storage::disk('public')->exists($filePath)) {
+            return $this->error('File not found', Response::HTTP_NOT_FOUND);
+        }
+
+        // Return file download
+        $fullPath = storage_path('app/public/' . $filePath);
+        return response()->download($fullPath, $filename);
     }
 }
