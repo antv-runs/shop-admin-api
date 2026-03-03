@@ -78,7 +78,15 @@ class ExportProductsJob implements ShouldQueue
             $filePath = $this->exportToFile($products, $filename);
 
             // Save file info to database or storage metadata
-            $fileUrl = Storage::disk('public')->url($filePath);
+            // Ensure download URL starts with APP_URL
+            $storageUrl = Storage::disk('public')->url($filePath);
+            if (preg_match('/^https?:\/\//', $storageUrl)) {
+                $fileUrl = $storageUrl;
+            } else {
+                $appUrl = config('app.url') ?? env('APP_URL');
+                $appUrl = rtrim($appUrl, '/');
+                $fileUrl = $appUrl . '/' . ltrim($storageUrl, '/');
+            }
 
             // Get user and send notification
             $user = User::find($this->userId);
