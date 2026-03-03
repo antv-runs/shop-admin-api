@@ -1,6 +1,6 @@
-FROM php:8.3-fpm
+FROM php:8.3-cli
 
-# Install necessary extension for Laravel
+# Install system dependencies
 RUN apt-get update && apt-get install -y \
     git \
     curl \
@@ -17,10 +17,19 @@ COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
 WORKDIR /var/www
 
-# Copy source code into container
-COPY . .
+# Copy only composer files first (better caching)
+COPY composer.json composer.lock ./
 
-# Install dependency
 RUN composer install --no-dev --optimize-autoloader
 
-CMD ["php-fpm"]
+# Copy rest of source
+COPY . .
+
+# Set proper permissions
+RUN chmod -R 775 storage bootstrap/cache
+
+# Expose Railway dynamic port
+EXPOSE 8080
+
+# Start Laravel server
+CMD php artisan serve --host=0.0.0.0 --port=$PORT
