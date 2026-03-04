@@ -391,7 +391,7 @@ class ProductController extends BaseController
      *     summary="Download exported product file",
      *     description="Download an exported product file (CSV or XLSX)",
      *     tags={"Products"},
-     *     security={{"sanctumAuth":{}}},
+     *     security={{"bearerAuth":{}}},
      *     @OA\Parameter(
      *         name="filename",
      *         in="path",
@@ -412,9 +412,9 @@ class ProductController extends BaseController
      */
     public function downloadExport($filename)
     {
-        // Validate filename to prevent directory traversal
-        if (preg_match('/[^a-zA-Z0-9_\-.]/', $filename)) {
-            return $this->error('Invalid filename', Response::HTTP_BAD_REQUEST);
+        // Validate filename to prevent directory traversal, download .csv or .xlsx files only
+        if (!preg_match('/^[a-zA-Z0-9_\-]+\.(xlsx|csv)$/', $filename)) {
+            return $this->error('Invalid filename', 400);
         }
 
         $filePath = 'exports/' . $filename;
