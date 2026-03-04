@@ -11,20 +11,8 @@
     },
     "servers": [
         {
-            "url": "https://api-laravel.vanannek.blog",
-            "description": "Production Server (VPS)"
-        },
-        {
-            "url": "https://api.vanannek.blog",
-            "description": "Production Server (Railway)"
-        },
-        {
             "url": "http://localhost:8000",
             "description": "Local Server"
-        },
-        {
-            "url": "https://carefree-ambition-production-a2df.up.railway.app",
-            "description": "Production Server (Railway)"
         }
     ],
     "paths": {
@@ -1668,7 +1656,7 @@
                     "Products"
                 ],
                 "summary": "Download exported product file",
-                "description": "Download an exported product file (CSV or XLSX)",
+                "description": "Download an exported product file (CSV or XLSX). Can be accessed via signed URL from email or with Bearer token.",
                 "operationId": "553eb9e24f8117f2a3c5e124b9244cdb",
                 "parameters": [
                     {
@@ -1679,6 +1667,24 @@
                         "schema": {
                             "type": "string",
                             "example": "products_export_2026-03-03_09-41-08.xlsx"
+                        }
+                    },
+                    {
+                        "name": "signature",
+                        "in": "query",
+                        "description": "URL signature for verification (included in email link)",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "expires",
+                        "in": "query",
+                        "description": "Signature expiration timestamp",
+                        "required": false,
+                        "schema": {
+                            "type": "integer"
                         }
                     }
                 ],
@@ -1691,194 +1697,11 @@
                     },
                     "404": {
                         "description": "File not found"
-                    }
-                },
-                "security": [
-                    {
-                        "bearerAuth": []
-                    }
-                ]
-            }
-        },
-        "/api/profile": {
-            "get": {
-                "tags": [
-                    "Profile"
-                ],
-                "summary": "Get user profile",
-                "description": "Get the authenticated user's profile information",
-                "operationId": "05020f7270d2b23a5c1a2182094c01cd",
-                "responses": {
-                    "200": {
-                        "description": "Profile retrieved successfully",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "properties": {
-                                        "success": {
-                                            "type": "boolean",
-                                            "example": true
-                                        },
-                                        "message": {
-                                            "type": "string",
-                                            "example": "Edit profile"
-                                        },
-                                        "data": {
-                                            "$ref": "#/components/schemas/User"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            }
-                        }
                     },
                     "401": {
-                        "description": "Unauthenticated",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/ErrorResponse"
-                                }
-                            }
-                        }
+                        "description": "Invalid or expired signature (when using signed URL)"
                     }
-                },
-                "security": [
-                    {
-                        "bearerAuth": []
-                    }
-                ]
-            },
-            "patch": {
-                "tags": [
-                    "Profile"
-                ],
-                "summary": "Update user profile",
-                "description": "Update the authenticated user's profile information including bio and profile image",
-                "operationId": "9b7235bb283355b576750777fbc0a703",
-                "requestBody": {
-                    "description": "Profile update data",
-                    "required": true,
-                    "content": {
-                        "multipart/form-data": {
-                            "schema": {
-                                "properties": {
-                                    "bio": {
-                                        "description": "User bio",
-                                        "type": "string",
-                                        "example": "I am a developer"
-                                    },
-                                    "profile_image": {
-                                        "description": "Profile image file (jpg, png, gif)",
-                                        "type": "string",
-                                        "format": "binary"
-                                    }
-                                },
-                                "type": "object"
-                            }
-                        }
-                    }
-                },
-                "responses": {
-                    "200": {
-                        "description": "Profile updated successfully",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "properties": {
-                                        "success": {
-                                            "type": "boolean",
-                                            "example": true
-                                        },
-                                        "message": {
-                                            "type": "string",
-                                            "example": "Profile updated successfully"
-                                        },
-                                        "data": {
-                                            "$ref": "#/components/schemas/User"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            }
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthenticated",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/ErrorResponse"
-                                }
-                            }
-                        }
-                    },
-                    "422": {
-                        "description": "Validation error",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/ErrorResponse"
-                                }
-                            }
-                        }
-                    }
-                },
-                "security": [
-                    {
-                        "bearerAuth": []
-                    }
-                ]
-            }
-        },
-        "/api/profile/image": {
-            "delete": {
-                "tags": [
-                    "Profile"
-                ],
-                "summary": "Delete profile image",
-                "description": "Delete the authenticated user's profile image",
-                "operationId": "cd9d6fdec35bc8f3b52e541826bd06fd",
-                "responses": {
-                    "200": {
-                        "description": "Profile image deleted successfully",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "properties": {
-                                        "success": {
-                                            "type": "boolean",
-                                            "example": true
-                                        },
-                                        "message": {
-                                            "type": "string",
-                                            "example": "Profile image deleted successfully"
-                                        },
-                                        "data": {
-                                            "$ref": "#/components/schemas/User"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            }
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthenticated",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/ErrorResponse"
-                                }
-                            }
-                        }
-                    }
-                },
-                "security": [
-                    {
-                        "bearerAuth": []
-                    }
-                ]
+                }
             }
         },
         "/api/users": {
@@ -2628,10 +2451,6 @@
         {
             "name": "Products",
             "description": "Products"
-        },
-        {
-            "name": "Profile",
-            "description": "Profile"
         },
         {
             "name": "Users",
