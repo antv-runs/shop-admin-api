@@ -30,8 +30,10 @@ Route::get('/products', [ProductController::class, 'index']);
 Route::get('/categories', [CategoryController::class, 'index']);
 Route::get('/categories/{id}', [CategoryController::class, 'show']);
 
-// Download export files (protected) - must be before /products/{id} to avoid conflict
-Route::middleware('auth:sanctum')->get('/products/exports/{filename}', [ProductController::class, 'downloadExport']);
+// Download export files (public) - must be before /products/{id} to avoid conflict
+// Filename validation in controller prevents directory traversal attacks
+Route::get('/products/exports/{filename}', [ProductController::class, 'downloadExport'])
+    ->name('products.download-export');
 
 // Product detail (public read-only) - after exports to avoid conflict
 Route::get('/products/{id}', [ProductController::class, 'show']);

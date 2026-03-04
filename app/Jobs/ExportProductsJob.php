@@ -77,7 +77,7 @@ class ExportProductsJob implements ShouldQueue
             $filename = $this->generateFileName();
             $filePath = $this->exportToFile($products, $filename);
 
-            // Generate API download URL
+            // Generate download URL
             $downloadUrl = config('app.url') . '/api/products/exports/' . $filename;
 
             // Get user and send notification

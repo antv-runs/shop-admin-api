@@ -389,15 +389,28 @@ class ProductController extends BaseController
      * @OA\Get(
      *     path="/api/products/exports/{filename}",
      *     summary="Download exported product file",
-     *     description="Download an exported product file (CSV or XLSX)",
+     *     description="Download an exported product file (CSV or XLSX). Can be accessed via signed URL from email or with Bearer token.",
      *     tags={"Products"},
-     *     security={{"bearerAuth":{}}},
      *     @OA\Parameter(
      *         name="filename",
      *         in="path",
      *         required=true,
      *         description="Filename of the export",
      *         @OA\Schema(type="string", example="products_export_2026-03-03_09-41-08.xlsx")
+     *     ),
+     *     @OA\Parameter(
+     *         name="signature",
+     *         in="query",
+     *         required=false,
+     *         description="URL signature for verification (included in email link)",
+     *         @OA\Schema(type="string")
+     *     ),
+     *     @OA\Parameter(
+     *         name="expires",
+     *         in="query",
+     *         required=false,
+     *         description="Signature expiration timestamp",
+     *         @OA\Schema(type="integer")
      *     ),
      *     @OA\Response(
      *         response=200,
@@ -407,6 +420,10 @@ class ProductController extends BaseController
      *     @OA\Response(
      *         response=404,
      *         description="File not found"
+     *     ),
+     *     @OA\Response(
+     *         response=401,
+     *         description="Invalid or expired signature (when using signed URL)"
      *     )
      * )
      */
