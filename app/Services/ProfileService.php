@@ -17,12 +17,13 @@ class ProfileService implements ProfileServiceInterface
         // Handle image upload
         if (isset($data['profile_image'])) {
             // Delete old image if exists
-            if ($user->profile_image && Storage::disk('public')->exists($user->profile_image)) {
-                Storage::disk('public')->delete($user->profile_image);
+            $disk = config('filesystems.default');
+            if ($user->profile_image && Storage::disk($disk)->exists($user->profile_image)) {
+                Storage::disk($disk)->delete($user->profile_image);
             }
 
             // Store new image
-            $path = $data['profile_image']->store('profile-images', 'public');
+            $path = $data['profile_image']->store('profile-images', $disk);
             $data['profile_image'] = $path;
         }
 
@@ -36,8 +37,9 @@ class ProfileService implements ProfileServiceInterface
      */
     public function deleteProfileImage($user)
     {
-        if ($user->profile_image && Storage::disk('public')->exists($user->profile_image)) {
-            Storage::disk('public')->delete($user->profile_image);
+        $disk = config('filesystems.default');
+        if ($user->profile_image && Storage::disk($disk)->exists($user->profile_image)) {
+            Storage::disk($disk)->delete($user->profile_image);
         }
 
         $user->update(['profile_image' => null]);

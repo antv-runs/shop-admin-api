@@ -104,7 +104,8 @@ class ProductService implements ProductServiceInterface
         // If a new image is provided, remove old image first
         if (!empty($data['image']) && $product->image) {
             try {
-                Storage::disk('public')->delete($product->image);
+                $disk = config('filesystems.default');
+                Storage::disk($disk)->delete($product->image);
             } catch (\Throwable $e) {
                 // ignore deletion errors
             }
@@ -212,8 +213,9 @@ class ProductService implements ProductServiceInterface
             return;
         }
 
-        if (Storage::disk('public')->exists($product->image)) {
-            Storage::disk('public')->delete($product->image);
+        $disk = config('filesystems.default');
+        if (Storage::disk($disk)->exists($product->image)) {
+            Storage::disk($disk)->delete($product->image);
         }
     }
 }

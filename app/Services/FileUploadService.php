@@ -20,7 +20,8 @@ class FileUploadService implements FileUploadServiceInterface
      */
     public function uploadProductImage(UploadedFile $file): string
     {
-        return $file->store('products', 'public');
+        $disk = config('filesystems.default');
+        return $file->store('products', $disk);
     }
 
     /**
@@ -28,9 +29,10 @@ class FileUploadService implements FileUploadServiceInterface
      */
     public function deleteFile(string $path): void
     {
-        if ($path && Storage::disk('public')->exists($path)) {
+        $disk = config('filesystems.default');
+        if ($path && Storage::disk($disk)->exists($path)) {
             try {
-                Storage::disk('public')->delete($path);
+                Storage::disk($disk)->delete($path);
             } catch (\Throwable $e) {
                 // Log or handle silently
             }

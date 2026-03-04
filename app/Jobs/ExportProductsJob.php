@@ -140,12 +140,12 @@ class ExportProductsJob implements ShouldQueue
      */
     protected function exportToFile($products, string $filename): string
     {
+        $disk = config('filesystems.default');
         $filePath = "exports/{$filename}";
-        $directory = "public/exports";
 
         // Ensure directory exists
-        if (!Storage::disk('public')->exists('exports')) {
-            Storage::disk('public')->makeDirectory('exports');
+        if (!Storage::disk($disk)->exists('exports')) {
+            Storage::disk($disk)->makeDirectory('exports');
         }
 
         if ($this->format === 'excel') {
@@ -191,8 +191,9 @@ class ExportProductsJob implements ShouldQueue
         $content = stream_get_contents($file);
         fclose($file);
 
-        // Store in public disk
-        Storage::disk('public')->put($filePath, $content);
+        // Store using configured default disk (may be minio)
+        $disk = config('filesystems.default');
+        Storage::disk($disk)->put($filePath, $content);
 
         return $filePath;
     }
@@ -210,10 +211,12 @@ class ExportProductsJob implements ShouldQueue
     {
         $filePath = str_replace('.csv', '.xlsx', $filePath);
 
+        $disk = config('filesystems.default');
+
         Excel::store(
             new ProductsExport($products),
             $filePath,
-            'public'
+            $disk
         );
 
         return $filePath;

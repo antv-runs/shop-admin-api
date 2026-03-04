@@ -436,13 +436,14 @@ class ProductController extends BaseController
 
         $filePath = 'exports/' . $filename;
 
+        $disk = config('filesystems.default');
+
         // Check if file exists
-        if (!Storage::disk('public')->exists($filePath)) {
+        if (!Storage::disk($disk)->exists($filePath)) {
             return $this->error('File not found', Response::HTTP_NOT_FOUND);
         }
 
-        // Return file download
-        $fullPath = storage_path('app/public/' . $filePath);
-        return response()->download($fullPath, $filename);
+        // return a download stream (S3/MinIO driver handles it for us)
+        return Storage::disk($disk)->download($filePath);
     }
 }
