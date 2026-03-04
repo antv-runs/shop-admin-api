@@ -11,6 +11,14 @@
     },
     "servers": [
         {
+            "url": "https://api-laravel.vanannek.blog",
+            "description": "Production Server (VPS)"
+        },
+        {
+            "url": "https://api.vanannek.blog",
+            "description": "Production Server (Railway)"
+        },
+        {
             "url": "http://localhost:8000",
             "description": "Local Server"
         }
