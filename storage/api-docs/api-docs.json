@@ -11,8 +11,12 @@
     },
     "servers": [
         {
+            "url": "https://api-laravel.vanannek.blog",
+            "description": "Production Server (VPS)"
+        },
+        {
             "url": "https://api.vanannek.blog",
-            "description": "Production Server"
+            "description": "Production Server (Railway)"
         },
         {
             "url": "http://localhost:8000",
@@ -20,7 +24,7 @@
         },
         {
             "url": "https://carefree-ambition-production-a2df.up.railway.app",
-            "description": "Production Server (Sub)"
+            "description": "Production Server (Railway)"
         }
     ],
     "paths": {

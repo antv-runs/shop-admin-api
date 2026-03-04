@@ -10,6 +10,7 @@ use App\Contracts\FileUploadServiceInterface;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Symfony\Component\HttpFoundation\Response;
+use Illuminate\Support\Facades\Log;
 
 class ProductController extends BaseController
 {
@@ -427,23 +428,60 @@ class ProductController extends BaseController
      *     )
      * )
      */
-    public function downloadExport($filename)
+    public function downloadExport(Request $request, $filename)
     {
-        // Validate filename to prevent directory traversal, download .csv or .xlsx files only
-        if (!preg_match('/^[a-zA-Z0-9_\-]+\.(xlsx|csv)$/', $filename)) {
+        // Validate filename - allow export files with alphanumeric, underscore, hyphen and dot
+        // Pattern: products_export_YYYY-MM-DD_HH-mm-ss.xlsx or .csv
+        if (!preg_match('/^[a-zA-Z0-9_\-\.]+\.(xlsx|csv)$/', $filename)) {
+            return $this->error('Invalid filename format', 400);
+        }
+
+        // Prevent directory traversal attempts
+        if (strpos($filename, '..') !== false || strpos($filename, '/') !== false) {
             return $this->error('Invalid filename', 400);
         }
 
         $filePath = 'exports/' . $filename;
 
-        $disk = config('filesystems.default');
+        // Get storage disk - use the same disk where export job stores files
+        $disk = config('filesystems.default', 'local');
+
+        // Log for debugging
+        Log::debug("Attempting to download export", [
+            'filename' => $filename,
+            'filePath' => $filePath,
+            'disk' => $disk,
+            'authenticated' => auth()->check()
+        ]);
 
         // Check if file exists
         if (!Storage::disk($disk)->exists($filePath)) {
+            Log::warning("Export file not found", [
+                'filename' => $filename,
+                'filePath' => $filePath,
+                'disk' => $disk
+            ]);
             return $this->error('File not found', Response::HTTP_NOT_FOUND);
         }
 
-        // return a download stream (S3/MinIO driver handles it for us)
-        return Storage::disk($disk)->download($filePath);
+        // Get file last modified time for caching
+        $lastModified = Storage::disk($disk)->lastModified($filePath);
+
+        // Determine content type based on extension
+        $extension = pathinfo($filename, PATHINFO_EXTENSION);
+        $contentType = $extension === 'xlsx'
+            ? 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+            : 'text/csv';
+
+        // return a download stream with proper headers
+        return Storage::disk($disk)->download(
+            $filePath,
+            $filename,
+            [
+                'Content-Type' => $contentType,
+                'Cache-Control' => 'public, max-age=3600',
+                'Last-Modified' => gmdate('D, d M Y H:i:s T', $lastModified)
+            ]
+        );
     }
 }
