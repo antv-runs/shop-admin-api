@@ -11,8 +11,16 @@
     },
     "servers": [
         {
+            "url": "https://api.vanannek.blog",
+            "description": "Production Server"
+        },
+        {
             "url": "http://localhost:8000",
             "description": "Local Server"
+        },
+        {
+            "url": "https://carefree-ambition-production-a2df.up.railway.app",
+            "description": "Production Server (Sub)"
         }
     ],
     "paths": {
