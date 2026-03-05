@@ -12,82 +12,103 @@ use App\Http\Controllers\Api\OrderController;
 |--------------------------------------------------------------------------
 | API Routes
 |--------------------------------------------------------------------------
-|
-| Here is where you can register API routes for your application. These
-| routes are loaded by the RouteServiceProvider within a group which
-| is assigned the "api" middleware group. Enjoy building your API!
-|
-| All routes return JSON responses.
-|
 */
 
-// Public routes
-Route::post('/auth/register', [AuthController::class, 'register']);
-Route::post('/auth/login', [AuthController::class, 'login']);
+// ==========================
+// Auth (Public)
+// ==========================
+Route::prefix('auth')->controller(AuthController::class)->group(function () {
+    Route::post('/register', 'register');
+    Route::post('/login', 'login');
+});
 
-// Products and Categories (public read-only)
-Route::get('/products', [ProductController::class, 'index']);
-Route::get('/categories', [CategoryController::class, 'index']);
-Route::get('/categories/{id}', [CategoryController::class, 'show']);
 
-// Download export files (public) - must be before /products/{id} to avoid conflict
-// Filename validation in controller prevents directory traversal attacks
-Route::get('/products/exports/{filename}', [ProductController::class, 'downloadExport'])
-    ->name('products.download-export');
+// ==========================
+// Public resources
+// ==========================
 
-// Product detail (public read-only) - after exports to avoid conflict
-Route::get('/products/{id}', [ProductController::class, 'show']);
+// Products
+Route::prefix('products')->controller(ProductController::class)->group(function () {
+    Route::get('/', 'index');
+    Route::get('/exports/{filename}', 'downloadExport')->name('products.download-export');
+    Route::get('/{id}', 'show')->where('id', '[0-9]+');
+});
 
-// Protected routes (requires authentication)
+// Categories
+Route::prefix('categories')->controller(CategoryController::class)->group(function () {
+    Route::get('/', 'index');
+    Route::get('/{id}', 'show')->where('id', '[0-9]+');
+});
+
+
+// ==========================
+// Protected Routes
+// ==========================
 Route::middleware('auth:sanctum')->group(function () {
-    // Auth endpoints
-    Route::post('/auth/logout', [AuthController::class, 'logout']);
 
-    // User info
-    Route::get('/auth/me', [AuthController::class, 'me']);
-
-    // User Profile routes
-    Route::patch('/profile', [ProfileController::class, 'update']);
-    Route::delete('/profile/image', [ProfileController::class, 'deleteImage']);
-
-    // Order endpoints for authenticated users
-    Route::get('/orders', [OrderController::class, 'index']);
-    Route::get('/orders/{id}', [OrderController::class, 'show']);
-    Route::post('/orders', [OrderController::class, 'store']);
-
-    // Admin only routes
-    Route::middleware(['is_admin'])->group(function () {
-        // Users Management
-        Route::get('/users', [UserController::class, 'index']);
-        Route::post('/users', [UserController::class, 'store']);
-        Route::get('/users/{id}', [UserController::class, 'show']);
-        Route::patch('/users/{id}', [UserController::class, 'update']);
-        Route::delete('/users/{id}', [UserController::class, 'destroy']);
-
-        // Soft delete for users
-        Route::get('/users/trashed', [UserController::class, 'trashed']);
-        Route::patch('/users/{id}/restore', [UserController::class, 'restore']);
-        Route::delete('/users/{id}/force-delete', [UserController::class, 'forceDelete']);
-
-        // Products Management
-        Route::post('/products', [ProductController::class, 'store']);
-        Route::patch('/products/{id}', [ProductController::class, 'update']);
-        Route::delete('/products/{id}', [ProductController::class, 'destroy']);
-        Route::post('/products/export', [ProductController::class, 'export']);
-
-        // Soft delete for products
-        Route::get('/products/trashed', [ProductController::class, 'trashed']);
-        Route::patch('/products/{id}/restore', [ProductController::class, 'restore']);
-        Route::delete('/products/{id}/force-delete', [ProductController::class, 'forceDelete']);
-
-        // Categories Management
-        Route::post('/categories', [CategoryController::class, 'store']);
-        Route::patch('/categories/{id}', [CategoryController::class, 'update']);
-        Route::delete('/categories/{id}', [CategoryController::class, 'destroy']);
-
-        // Soft delete for categories
-        Route::get('/categories/trashed', [CategoryController::class, 'trashed']);
-        Route::patch('/categories/{id}/restore', [CategoryController::class, 'restore']);
-        Route::delete('/categories/{id}/force-delete', [CategoryController::class, 'forceDelete']);
+    // Auth actions
+    Route::prefix('auth')->controller(AuthController::class)->group(function () {
+        Route::post('/logout', 'logout');
+        Route::get('/me', 'me');
     });
+
+    // Profile
+    Route::prefix('profile')->controller(ProfileController::class)->group(function () {
+        Route::patch('/', 'update');
+        Route::delete('/image', 'deleteImage');
+    });
+
+    // Orders
+    Route::prefix('orders')->controller(OrderController::class)->group(function () {
+        Route::get('/', 'index');
+        Route::get('/{id}', 'show');
+        Route::post('/', 'store');
+    });
+
+    // ==========================
+    // Admin routes
+    // ==========================
+    Route::middleware('is_admin')->group(function () {
+
+        // Users
+        Route::prefix('users')->controller(UserController::class)->group(function () {
+            Route::get('/', 'index');
+            Route::post('/', 'store');
+            Route::get('/trashed', 'trashed');
+
+            Route::get('/{id}', 'show');
+            Route::patch('/{id}', 'update');
+            Route::delete('/{id}', 'destroy');
+
+            Route::patch('/{id}/restore', 'restore');
+            Route::delete('/{id}/force-delete', 'forceDelete');
+        });
+
+        // Products
+        Route::prefix('products')->controller(ProductController::class)->group(function () {
+            Route::post('/', 'store');
+            Route::get('/trashed', 'trashed');
+            Route::post('/export', 'export');
+
+            Route::patch('/{id}', 'update')->where('id', '[0-9]+');
+            Route::delete('/{id}', 'destroy')->where('id', '[0-9]+');
+
+            Route::patch('/{id}/restore', 'restore')->where('id', '[0-9]+');
+            Route::delete('/{id}/force-delete', 'forceDelete')->where('id', '[0-9]+');
+        });
+
+        // Categories
+        Route::prefix('categories')->controller(CategoryController::class)->group(function () {
+            Route::post('/', 'store');
+            Route::get('/trashed', 'trashed');
+
+            Route::patch('/{id}', 'update')->where('id', '[0-9]+');
+            Route::delete('/{id}', 'destroy')->where('id', '[0-9]+');
+
+            Route::patch('/{id}/restore', 'restore')->where('id', '[0-9]+');
+            Route::delete('/{id}/force-delete', 'forceDelete')->where('id', '[0-9]+');
+        });
+
+    });
+
 });
