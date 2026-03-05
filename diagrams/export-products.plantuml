@@ -1,0 +1,41 @@
+@startuml
+actor Admin
+participant "Frontend" as FE
+participant "Laravel API" as API
+participant "ExportController" as Controller
+participant "ExportService" as Service
+participant "Queue (Redis/Database)" as Queue
+participant "Queue Worker" as Worker
+participant "Excel Generator" as Excel
+participant "Storage (S3/MinIO)" as Storage
+participant "Mail Service" as Mail
+
+== Request Export ==
+
+Admin -> FE : Click "Export Products"
+FE -> API : POST /api/products/export
+
+API -> Controller : handle request
+Controller -> Service : dispatch ExportProductsJob()
+
+Service -> Queue : push job
+Queue --> Service : Job ID
+
+Service --> Controller : success
+Controller --> API : 202 Accepted\n{"message": "Export is processing"}
+API --> FE : 202 Accepted
+FE --> Admin : Show "Check email later"
+
+== Background Processing ==
+
+Queue -> Worker : pull ExportProductsJob
+Worker -> Excel : generate Excel file
+Excel --> Worker : file.xlsx
+
+Worker -> Storage : upload file
+Storage --> Worker : file URL
+
+Worker -> Mail : send mail with download link
+Mail --> Admin : Email with link
+
+@enduml
