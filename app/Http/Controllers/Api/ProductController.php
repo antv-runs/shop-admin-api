@@ -256,7 +256,7 @@ class ProductController extends BaseController
         $products = $this->productService->getTrashed($perPage);
 
         return $this->success(
-            $products,
+            ProductResource::collection($products),
             'Trashed products retrieved successfully'
         );
     }
