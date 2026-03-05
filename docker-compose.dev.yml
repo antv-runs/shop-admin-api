@@ -30,8 +30,25 @@ services:
     networks:
       - shop-admin-network
 
+  shop-admin-minio:
+    image: minio/minio:RELEASE.2025-04-08T15-41-24Z
+    container_name: shop-admin-minio
+    restart: always
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: admin
+      MINIO_ROOT_PASSWORD: admin123
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - shop-admin-minio-data:/data
+    networks:
+      - shop-admin-network
+
 volumes:
   shop-admin-db-data:
+  shop-admin-minio-data:
 
 networks:
   shop-admin-network:
